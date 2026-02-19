@@ -4,11 +4,13 @@ import { LazyModuleLoader } from '@nestjs/core';
 import { LazyModule } from './lazy/lazy.module';
 import { LazyService } from './lazy/lazy.service';
 import { AuthGuard } from './Util/auth.guard';
+import { MyDiscoveryService } from './Discovery/discovery.service';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService,
-    private readonly lazyModuleLoader: LazyModuleLoader
+    private readonly lazyModuleLoader: LazyModuleLoader,
+    private readonly discoveryService: MyDiscoveryService
   ) { }
 
   @Get('load-lazy')
@@ -25,6 +27,10 @@ export class AppController {
   @Get('secure')
   getSecureData() {
     return 'This is protected data';
+  }
+  @Get('providers')
+  getProviders() {
+    return this.discoveryService.listProviders();
   }
 
   @Get()
