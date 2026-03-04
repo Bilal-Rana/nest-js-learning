@@ -1,29 +1,22 @@
+// auth/auth.module.ts  ← AuthService belongs HERE
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
-import { UsersModule } from '../users/users.module';
-import { AuthController } from './auth.controller';
-import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
-import { jwtConstants } from './auth.constants';
+import { AuthController } from './auth.controller';
+import { UsersModule } from '../users/users.module';
+import { CryptoModule } from '../crypto/crypto.module'; // ✅ import for HashService
 
 @Module({
   imports: [
-    UsersModule,
+    UsersModule,   // provides UsersService
+    CryptoModule,  // provides HashService & CryptoService
     JwtModule.register({
-      global: true,           
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1h' }, 
+      global: true,
+      secret: process.env.JWT_SECRET ?? 'your-secret',
+      signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [
-    AuthService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-  ],
+  providers: [AuthService],
   controllers: [AuthController],
-  exports: [AuthService],
 })
 export class AuthModule {}

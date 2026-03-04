@@ -1,6 +1,8 @@
+// auth/auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -12,18 +14,23 @@ export class AuthService {
   async signIn(username: string, pass: string): Promise<{ access_token: string }> {
     const user = await this.usersService.findOne(username);
 
-
-    if (!user || user.password !== pass) {
+    // ✅ Use bcrypt.compare instead of plain === comparison
+    if (!user || !(await bcrypt.compare(pass, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const payload = {
-      sub: user.userId,      // 'sub' = subject (standard JWT claim)
+      sub: user.userId,
       username: user.username,
     };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
+  }
+
+  // ✅ New: hash password on registration
+  async hashPassword(plainPassword: string): Promise<string> {
+    return bcrypt.hash(plainPassword, 10);
   }
 }
